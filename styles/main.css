@@ -1,0 +1,20 @@
+html, body {
+    overflow: hidden;
+    height: 100%;
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2') format('woff2'),
+      url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono/web/woff/JetBrainsMono-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+h1, h2, p {
+    color: rgb(2, 46, 53);
+    user-select: none;
+    font-family: 'JetBrains Mono';
+    align-self: flex-end;
+}
