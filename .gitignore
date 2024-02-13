@@ -9,6 +9,7 @@ package-lock.json
 
 # Build directory
 /build
+/dist
 
 # Logs
 npm-debug.log*
