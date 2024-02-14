@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import GUI from 'lil-gui';
-import { 
-    setupOrbitControls, 
-    setupTelelumen,
-    setupWallGUI
-} from './setup';
+import { setupOrbitControls } from './setup';
+import { setupTelelumen, setupWallGUI } from './telesetup';
 
 main();
 

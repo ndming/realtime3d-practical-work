@@ -4,7 +4,7 @@ import {
     setupTelelumen,
     setupTelelumenLights,
     setupWallGUI,
-    setupLightGUI
+    setupLightGUI,
 } from './telesetup';
 import GUI from 'lil-gui';
 

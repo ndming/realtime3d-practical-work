@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { setupOrbitControls, setupTelelumen } from './setup';
+import { setupOrbitControls } from './setup';
+import { setupTelelumen } from './telesetup';
 
 main();
 
