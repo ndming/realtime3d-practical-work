@@ -485,6 +485,12 @@ function setupTelelumen(scene, box) {
 }
 
 function setupTelelumenLights(scene, initialState, box) {
+    // Ambient light
+    const ambientLight = new THREE.AmbientLight(
+        initialState.ambient.color,
+        initialState.ambient.intensity
+    );
+
     // Point light
     const pointLight = new THREE.PointLight(
         initialState.point.color,
@@ -544,12 +550,27 @@ function setupTelelumenLights(scene, initialState, box) {
     spotLight.target.position.add(box.position);
     const spotLightHelper = new THREE.SpotLightHelper(spotLight, initialState.spot.color);
 
-    const primary = {
+    // Hemisphere light
+    const hemisphereLight = new THREE.HemisphereLight(
+        initialState.hemisphere.skyColor,
+        initialState.hemisphere.groundColor,
+        initialState.hemisphere.intensity,
+    );
+    hemisphereLight.position.set(0, 0, 0);
+    hemisphereLight.position.add(initialState.hemisphere.position);
+    hemisphereLight.position.add(box.position);
+    const hemisphereLightHelper = new THREE.HemisphereLightHelper(hemisphereLight);
+
+    const primaryLights = {
         point: pointLightHelper,
         directional: directionalLightHelper,
-        spot: spotLightHelper
+        spot: spotLightHelper,
+        hemisphere: hemisphereLightHelper
     };
-    return { primary };
+    return {
+        ambient: ambientLight,
+        primary: primaryLights
+    };
 }
 
 function setupWallGUI(gui, telelumen) {
@@ -564,6 +585,26 @@ function setupWallGUI(gui, telelumen) {
 
 function setupLightGUI(gui, telelumenLights, scene, initialState, box) {
     const lightGUI = gui.addFolder('Lights');
+    const ambientLightGUI = lightGUI.addFolder('Ambient Light');
+    const ambientLight = telelumenLights.ambient;
+    ambientLightGUI
+        .add({ enabled: false }, 'enabled')
+        .name('Enabled')
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(ambientLight);
+            } else {
+                scene.remove(ambientLight);
+            }
+        });
+    ambientLightGUI.addColor(ambientLight, 'color').name('Name').listen();
+    ambientLightGUI.add(ambientLight, 'intensity', 0, 20, 0.1).name('Intensity').listen();
+    ambientLightGUI.add({
+        onReset: () => {
+            ambientLight.color.set(initialState.ambient.color);
+            ambientLight.intensity = initialState.ambient.intensity;
+        }
+    }, 'onReset').name("Reset");
 
     const primaryLightGUI = lightGUI.addFolder('Primary Lights');
 
@@ -575,6 +616,9 @@ function setupLightGUI(gui, telelumenLights, scene, initialState, box) {
 
     const spotLightGUI = primaryLightGUI.addFolder('Spot');
     setupSpotLightGUI(spotLightGUI, telelumenLights.primary.spot, scene, initialState.spot, box);
+
+    const hemesphereLightGUI = primaryLightGUI.addFolder('Hemisphere');
+    setupHemisphereLightGUI(hemesphereLightGUI, telelumenLights.primary.hemisphere, scene, initialState.hemisphere, box);
 }
 
 function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
@@ -588,6 +632,16 @@ function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
             } else {
                 scene.remove(helper);
                 scene.remove(helper.light);
+            }
+        });
+    lightGUI
+        .add({ enabled: true }, 'enabled')
+        .name('Helper')
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(helper);
+            } else {
+                scene.remove(helper);
             }
         });
     lightGUI
@@ -655,6 +709,16 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
                 scene.remove(helper);
                 scene.remove(helper.light);
                 scene.remove(helper.light.target);
+            }
+        });
+    lightGUI
+        .add({ enabled: true }, 'enabled')
+        .name('Helper')
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(helper);
+            } else {
+                scene.remove(helper);
             }
         });
     lightGUI
@@ -740,6 +804,16 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
                 scene.remove(helper);
                 scene.remove(helper.light);
                 scene.remove(helper.light.target);
+            }
+        });
+    lightGUI
+        .add({ enabled: true }, 'enabled')
+        .name('Helper')
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(helper);
+            } else {
+                scene.remove(helper);
             }
         });
     lightGUI
@@ -841,6 +915,76 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
         helper.light.penumbra = initialState.penumbra;
         helper.light.decay = initialState.decay;
         helper.light.distance = initialState.distance;
+        helper.update();
+    }
+}
+
+function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box) {
+    lightGUI
+        .add({ enabled: false }, 'enabled')
+        .name('Enabled')
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(helper);
+                scene.add(helper.light);
+            } else {
+                scene.remove(helper);
+                scene.remove(helper.light);
+            }
+        });
+    lightGUI
+        .add({ enabled: true }, 'enabled')
+        .name('Helper')
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(helper);
+            } else {
+                scene.remove(helper);
+            }
+        });
+    lightGUI
+        .addColor(helper.light, 'color')
+        .name("Sky Color")
+        .listen()
+        .onChange((color) => {
+            helper.color = color;
+            helper.update();
+        });
+    lightGUI
+        .addColor(helper.light, 'groundColor')
+        .name("Ground Color")
+        .listen()
+        .onChange((color) => {
+            // helper.color = color;
+            helper.update();
+        });
+    lightGUI
+        .add(helper.light, 'intensity', 1, 150, 0.1)
+        .name("Intensity (cd)")
+        .listen();
+
+    lightGUI
+        .add(helper.light.position, 'x', -box.width / 2 + 1.5, box.width / 2 - 1.5, 0.01)
+        .name("Position X")
+        .listen();
+    lightGUI
+        .add(helper.light.position, 'y', -box.height / 2 + 1.5, box.height / 2 - 1.5, 0.01)
+        .name("Position Y")
+        .listen();
+    lightGUI
+        .add(helper.light.position, 'z', -box.depth / 2 + 1.5, box.depth / 2 - 1.5, 0.01)
+        .name("Position Z")
+        .listen();
+
+    lightGUI.add({ onReset: onReset }, 'onReset').name("Reset");
+    function onReset() {
+        helper.light.color.set(initialState.skyColor);
+        helper.color = initialState.color;
+        helper.light.goundColor = initialState.groundColor;
+        helper.light.intensity = initialState.intensity;
+        helper.light.position.set(0, 0, 0);
+        helper.light.position.add(initialState.position);
+        helper.light.position.add(box.position);
         helper.update();
     }
 }

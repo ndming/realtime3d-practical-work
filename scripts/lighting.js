@@ -46,6 +46,10 @@ function main() {
     const telelumen = setupTelelumen(scene, telelumenBox);
 
     // Telelumen lights
+    const ambientLightInitialState = {
+        color: 0xffffff,
+        intensity: 2,
+    };
     const pointLightInitialState = {
         color: 0xffffff,
         decay: 2,
@@ -71,10 +75,18 @@ function main() {
         dirPhi: 0,
         dirTheta: Math.PI
     };
+    const hemisphereLightInitialState = {
+        skyColor: 0xffffff,
+        groundColor: 0xadad85,
+        intensity: 2,
+        position: new THREE.Vector3(0, telelumenBoxHeight - 4, 0),
+    };
     const initialState = {
+        ambient: ambientLightInitialState,
         point: pointLightInitialState,
         directional: directionalLightInitialState,
-        spot: spotLightInitialState
+        spot: spotLightInitialState,
+        hemisphere: hemisphereLightInitialState,
     };
     const telelumenLights = setupTelelumenLights(scene, initialState, telelumenBox);
 
