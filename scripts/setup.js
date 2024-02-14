@@ -249,7 +249,7 @@ function setupPrimitives(scene, onResourceLoaded) {
     polyhedron.position.set(-5, 0.5, -3);
 
     const loader = new FontLoader();
-    loader.load('../resources/typefaces/JetBrains-Mono-SemiBold.json', (font) => {
+    loader.load('/typefaces/JetBrains-Mono-SemiBold.json', (font) => {
         const geometry = new TextGeometry("JS", {
             font: font,
             size: 3,

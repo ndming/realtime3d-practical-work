@@ -31,7 +31,18 @@ function main() {
     window.addEventListener('resize', requestRender);
     onResize();
 
-    const telelumen = setupTelelumen(scene);
+    // The Telelumen box
+    const telelumenBoxWidth = 14;
+    const telelumenBoxHeight = 12;
+    const telelumenBoxDepth = 8;
+    const telelumenBox = {
+        width: telelumenBoxWidth,
+        height: telelumenBoxHeight,
+        depth: telelumenBoxDepth,
+        position: new THREE.Vector3(0, -telelumenBoxHeight / 2, 0)
+    }
+    const telelumen = setupTelelumen(scene, telelumenBox);
+    
     const primaryLight = new THREE.PointLight(0xffffff, 20, 100);
     primaryLight.position.set(0, 4, 0);
     scene.add(primaryLight);
@@ -75,8 +86,7 @@ function main() {
         const near = 0.1;
         const far = 200;
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.set(0, 2, 16);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(0, 0, 20);
 
         return camera;
     }
