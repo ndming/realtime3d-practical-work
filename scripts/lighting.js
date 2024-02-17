@@ -48,13 +48,13 @@ function main() {
     // Telelumen lights
     const ambientLightInitialState = {
         color: 0xffffff,
-        intensity: 2,
+        intensity: 0.05,
     };
     const pointLightInitialState = {
         color: 0xffffff,
         decay: 2,
         distance: 16,
-        intensity: 40,
+        intensity: 20,
         position: new THREE.Vector3(0, telelumenBoxHeight - 4, 0),
     };
     const directionalLightInitialState = {

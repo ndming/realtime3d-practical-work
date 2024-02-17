@@ -179,7 +179,7 @@ function setupTelelumenLights(scene, initialState, box) {
     };
 }
 
-function setupWallGUI(gui, telelumen) {
+function setupWallGUI(gui, telelumen, notifyParent) {
     const wallGUI = gui.addFolder('Walls');
     wallGUI
         .add({ side: THREE.FrontSide }, 'side', { Front: THREE.FrontSide, Double: THREE.DoubleSide })
@@ -189,24 +189,28 @@ function setupWallGUI(gui, telelumen) {
             telelumen.rightWall.material.side = side;
             telelumen.ceilling.material.side = side;
             telelumen.floor.material.side = side;
+
+            notifyParent();
         });
 
     const wallLeftGUI = wallGUI.addFolder('Wall Left');
     wallLeftGUI
         .addColor(telelumen.leftWall.material, 'color')
-        .name("Color");
+        .name("Color")
+        .onChange(notifyParent);
 
     const wallRightGUI = wallGUI.addFolder('Wall Right');
     wallRightGUI
         .addColor(telelumen.rightWall.material, 'color')
-        .name("Color");
+        .name("Color")
+        .onChange(notifyParent);;
 
     wallGUI.close();
     wallLeftGUI.close();
     wallRightGUI.close();
 }
 
-function setupLightGUI(gui, telelumenLights, scene, initialState, box) {
+function setupLightGUI(gui, telelumenLights, scene, initialState, box, notifyParent) {
     const lightGUI = gui.addFolder('Lights');
 
     const ambientLightGUI = lightGUI.addFolder('Ambient Light');
@@ -220,29 +224,30 @@ function setupLightGUI(gui, telelumenLights, scene, initialState, box) {
             } else {
                 scene.remove(ambientLight);
             }
+            notifyParent();
         });
-    ambientLightGUI.addColor(ambientLight, 'color').name('Name').listen();
-    ambientLightGUI.add(ambientLight, 'intensity', 0, 5, 0.01).name('Intensity').listen();
+    ambientLightGUI.addColor(ambientLight, 'color').name('Name').listen().onChange(notifyParent);
+    ambientLightGUI.add(ambientLight, 'intensity', 0, 5, 0.01).name('Intensity').listen().onChange(notifyParent);
     ambientLightGUI.add({
         onReset: () => {
             ambientLight.color.set(initialState.ambient.color);
             ambientLight.intensity = initialState.ambient.intensity;
         }
-    }, 'onReset').name("Reset");
+    }, 'onReset').name("Reset").onChange(notifyParent);
 
     const primaryLightGUI = lightGUI.addFolder('Primary Lights');
 
     const pointLightGUI = primaryLightGUI.addFolder('Point');
-    setupPointLightGUI(pointLightGUI, telelumenLights.primary.point, scene, initialState.point, box);
+    setupPointLightGUI(pointLightGUI, telelumenLights.primary.point, scene, initialState.point, box, notifyParent);
 
     const directionalLightGUI = primaryLightGUI.addFolder('Directional');
-    setupDirectionalLightGUI(directionalLightGUI, telelumenLights.primary.directional, scene, initialState.directional, box);
+    setupDirectionalLightGUI(directionalLightGUI, telelumenLights.primary.directional, scene, initialState.directional, box, notifyParent);
 
     const spotLightGUI = primaryLightGUI.addFolder('Spot');
-    setupSpotLightGUI(spotLightGUI, telelumenLights.primary.spot, scene, initialState.spot, box);
+    setupSpotLightGUI(spotLightGUI, telelumenLights.primary.spot, scene, initialState.spot, box, notifyParent);
 
     const hemesphereLightGUI = primaryLightGUI.addFolder('Hemisphere');
-    setupHemisphereLightGUI(hemesphereLightGUI, telelumenLights.primary.hemisphere, scene, initialState.hemisphere, box);
+    setupHemisphereLightGUI(hemesphereLightGUI, telelumenLights.primary.hemisphere, scene, initialState.hemisphere, box, notifyParent);
 
     primaryLightGUI.close();
     pointLightGUI.close();
@@ -256,7 +261,7 @@ function setupLightGUI(gui, telelumenLights, scene, initialState, box) {
     lightGUI.close();
 }
 
-function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
+function setupPointLightGUI(lightGUI, helper, scene, initialState, box, notifyParent) {
     lightGUI
         .add({ enabled: true }, 'enabled')
         .name('Enabled')
@@ -268,6 +273,7 @@ function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
                 scene.remove(helper);
                 scene.remove(helper.light);
             }
+            notifyParent();
         });
     lightGUI
         .add({ enabled: true }, 'enabled')
@@ -278,6 +284,7 @@ function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
             } else {
                 scene.remove(helper);
             }
+            notifyParent();
         });
     lightGUI
         .addColor(helper.light, 'color')
@@ -286,31 +293,39 @@ function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
         .onChange((color) => {
             helper.color = color;
             helper.update();
+            notifyParent();
         });
     lightGUI
         .add(helper.light, 'decay', 0, 4, 0.01)
         .name("Decay")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light, 'distance', 0, 24, 0.01)
-        .name("Distance").listen();
+        .name("Distance")
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light, 'intensity', 1, 150, 0.1)
         .name("Intensity (cd)")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
 
     lightGUI
         .add(helper.light.position, 'x', -box.width / 2 + 1.5, box.width / 2 - 1.5, 0.01)
         .name("Position X")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light.position, 'y', -box.height / 2 + 1.5, box.height / 2 - 1.5, 0.01)
         .name("Position Y")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light.position, 'z', -box.depth / 2 + 1.5, box.depth / 2 - 1.5, 0.01)
         .name("Position Z")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
 
     lightGUI.add({ onReset: onReset }, 'onReset').name("Reset");
     function onReset() {
@@ -323,10 +338,11 @@ function setupPointLightGUI(lightGUI, helper, scene, initialState, box) {
         helper.light.position.add(initialState.position);
         helper.light.position.add(box.position);
         helper.update();
+        notifyParent();
     }
 }
 
-function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
+function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box, notifyParent) {
     const currentDirection = {
         phi: initialState.dirPhi,
         theta: initialState.dirTheta
@@ -345,6 +361,7 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
                 scene.remove(helper.light);
                 scene.remove(helper.light.target);
             }
+            notifyParent();
         });
     lightGUI
         .add({ enabled: true }, 'enabled')
@@ -355,6 +372,7 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
             } else {
                 scene.remove(helper);
             }
+            notifyParent();
         });
     lightGUI
         .addColor(helper.light, 'color')
@@ -363,11 +381,13 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
         .onChange((color) => {
             helper.color = color;
             helper.update();
+            notifyParent();
         });
     lightGUI
         .add(helper.light, 'intensity', 1, 150, 0.1)
         .name("Intensity (cd)")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(currentDirection, 'phi', -Math.PI, Math.PI, 0.01)
         .name("Direction Phi")
@@ -383,6 +403,7 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
             helper.light.target.position.add(initialState.position);
             helper.light.target.position.add(box.position);
             helper.update();
+            notifyParent();
         });
     lightGUI
         .add(currentDirection, 'theta', -Math.PI, 0, 0.01)
@@ -399,6 +420,7 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
             helper.light.target.position.add(initialState.position);
             helper.light.target.position.add(box.position);
             helper.update();
+            notifyParent();
         });
 
     lightGUI.add({ onReset: onReset }, 'onReset').name("Reset");
@@ -418,10 +440,11 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box) {
         helper.light.target.position.add(initialState.position);
         helper.light.target.position.add(box.position);
         helper.update();
+        notifyParent();
     }
 }
 
-function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
+function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyParent) {
     const currentDirection = {
         phi: initialState.dirPhi,
         theta: initialState.dirTheta
@@ -440,6 +463,7 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
                 scene.remove(helper.light);
                 scene.remove(helper.light.target);
             }
+            notifyParent();
         });
     lightGUI
         .add({ enabled: true }, 'enabled')
@@ -450,6 +474,7 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
             } else {
                 scene.remove(helper);
             }
+            notifyParent();
         });
     lightGUI
         .add(helper.light, 'angle', 0, Math.PI, 0.01)
@@ -463,39 +488,55 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
         .onChange((color) => {
             helper.color = color;
             helper.update();
+            notifyParent();
         });
     lightGUI
         .add(helper.light, 'decay', 0, 4, 0.01)
         .name("Decay")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light, 'distance', 0, 24, 0.01)
         .name("Distance")
         .listen()
-        .onChange((_) => { helper.update(); });
+        .onChange((_) => { 
+            helper.update();
+            notifyParent();
+        });
     lightGUI
         .add(helper.light, 'intensity', 1, 150, 0.1)
         .name("Intensity (cd)")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light, 'penumbra', 0, 1, 0.01)
         .name("Penumbra")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light.position, 'x', -box.width / 2 + 1.5, box.width / 2 - 1.5, 0.01)
         .name("Position X")
         .listen()
-        .onChange((_) => { helper.update(); });
+        .onChange((_) => { 
+            helper.update();
+            notifyParent();
+        });
     lightGUI
         .add(helper.light.position, 'y', -box.height / 2 + 1.5, box.height / 2 - 1.5, 0.01)
         .name("Position Y")
         .listen()
-        .onChange((_) => { helper.update(); });
+        .onChange((_) => { 
+            helper.update();
+            notifyParent();
+        });
     lightGUI
         .add(helper.light.position, 'z', -box.depth / 2 + 1.5, box.depth / 2 - 1.5, 0.01)
         .name("Position Z")
         .listen()
-        .onChange((_) => { helper.update(); });
+        .onChange((_) => { 
+            helper.update();
+            notifyParent();
+        });
     lightGUI
         .add(currentDirection, 'phi', -Math.PI, Math.PI, 0.01)
         .name("Direction Phi")
@@ -510,6 +551,7 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
             helper.light.target.position.add(target);
             helper.light.target.position.add(helper.light.position);
             helper.update();
+            notifyParent();
         });
     lightGUI
         .add(currentDirection, 'theta', 0, Math.PI, 0.01)
@@ -525,6 +567,7 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
             helper.light.target.position.add(target);
             helper.light.target.position.add(helper.light.position);
             helper.update();
+            notifyParent();
         });
 
     lightGUI.add({ onReset: onReset }, 'onReset').name("Reset");
@@ -551,10 +594,11 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box) {
         helper.light.decay = initialState.decay;
         helper.light.distance = initialState.distance;
         helper.update();
+        notifyParent();
     }
 }
 
-function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box) {
+function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box, notifyParent) {
     lightGUI
         .add({ enabled: false }, 'enabled')
         .name('Enabled')
@@ -566,6 +610,7 @@ function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box) {
                 scene.remove(helper);
                 scene.remove(helper.light);
             }
+            notifyParent();
         });
     lightGUI
         .add({ enabled: true }, 'enabled')
@@ -576,6 +621,7 @@ function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box) {
             } else {
                 scene.remove(helper);
             }
+            notifyParent();
         });
     lightGUI
         .addColor(helper.light, 'color')
@@ -584,29 +630,37 @@ function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box) {
         .onChange((color) => {
             helper.color = color;
             helper.update();
+            notifyParent();
         });
     lightGUI
         .addColor(helper.light, 'groundColor')
         .name("Ground Color")
         .listen()
-        .onChange((_) => { helper.update(); });
+        .onChange((_) => { 
+            helper.update();
+            notifyParent();
+        });
     lightGUI
         .add(helper.light, 'intensity', 1, 150, 0.1)
         .name("Intensity (cd)")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
 
     lightGUI
         .add(helper.light.position, 'x', -box.width / 2 + 1.5, box.width / 2 - 1.5, 0.01)
         .name("Position X")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light.position, 'y', -box.height / 2 + 1.5, box.height / 2 - 1.5, 0.01)
         .name("Position Y")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
     lightGUI
         .add(helper.light.position, 'z', -box.depth / 2 + 1.5, box.depth / 2 - 1.5, 0.01)
         .name("Position Z")
-        .listen();
+        .listen()
+        .onChange(notifyParent);
 
     lightGUI.add({ onReset: onReset }, 'onReset').name("Reset");
     function onReset() {
@@ -618,10 +672,11 @@ function setupHemisphereLightGUI(lightGUI, helper, scene, initialState, box) {
         helper.light.position.add(initialState.position);
         helper.light.position.add(box.position);
         helper.update();
+        notifyParent();
     }
 }
 
-function setupMaterialGUI(gui, cone, cylinder, sphere, textures, envMaps) {
+function setupMaterialGUI(gui, cone, cylinder, sphere, textures, envMaps, notifyParent) {
     const materialGUI = gui.addFolder('Materials');
 
     const commonGUI = materialGUI.addFolder('Common');
@@ -660,7 +715,26 @@ function setupMaterialGUI(gui, cone, cylinder, sphere, textures, envMaps) {
 
     const phongGUI = materialGUI.addFolder('Phong');
     const phongProperties = {
+        aoMap: null,
+        aoMapIntensity: 1,
+        bumpMap: null,
+        bumpScale: 1,
         color: 0xff6666,
+        map: null,
+        displacementMap: null,
+        displacementScale: 1,
+        displacementBias: 0,
+        emissive: 0x000000,
+        emissiveMap: null,
+        emissiveIntensity: 1,
+        envMap: null,
+        reflectivity: 1,
+        refractionRatio: 0.98,
+        normalMap: null,
+        normalScale: new THREE.Vector2(1, 1),
+        specularMap: null,
+        flatShading: false,
+        wireframe: false,
     };
 
     const physicalGUI = materialGUI.addFolder('Physcial');
@@ -669,10 +743,12 @@ function setupMaterialGUI(gui, cone, cylinder, sphere, textures, envMaps) {
     };
 
     setupCommonMaterialGUI(
-        commonGUI, commonProperties, lambertProperties, phongProperties, physicalProperties,
-        cone, cylinder, sphere
+        commonGUI, commonProperties, 
+        lambertProperties, phongProperties, physicalProperties,
+        cone, cylinder, sphere, notifyParent
     );
-    setupLambertGUI(lambertGUI, cone, commonProperties, lambertProperties, textures, envMaps.cone);
+    setupLambertGUI(lambertGUI, cone, commonProperties, lambertProperties, textures, envMaps.cone, notifyParent);
+    setupPhongGUI(phongGUI, cylinder, commonProperties, phongProperties, textures, envMaps.cylinder, notifyParent);
 
     materialGUI.close();
     commonGUI.close();
@@ -683,7 +759,7 @@ function setupMaterialGUI(gui, cone, cylinder, sphere, textures, envMaps) {
 
 function setupCommonMaterialGUI(
     gui, commonProperties, lambertProperties, phongProperties, physicalProperties,
-    cone, cylinder, sphere
+    cone, cylinder, sphere, notifyParent
 ) {
     gui
         .add(commonProperties, 'dithering')
@@ -726,10 +802,12 @@ function setupCommonMaterialGUI(
         physical.setValues(commonProperties);
         physical.setValues(physicalProperties);
         sphere.material = physical;
+
+        notifyParent();
     }
 }
 
-function setupLambertGUI(gui, cone, commonProperties, properties, textures, envMaps) {
+function setupLambertGUI(gui, cone, commonProperties, properties, textures, envMaps, notifyParent) {
     const textureNames = Array.from(textures, (texture) => texture.name);
     textureNames.unshift('None');
 
@@ -961,5 +1039,244 @@ function setupLambertGUI(gui, cone, commonProperties, properties, textures, envM
         lambert.setValues(commonProperties);
         lambert.setValues(properties);
         cone.material = lambert;
+
+        notifyParent();
+    }
+}
+
+function setupPhongGUI(gui, cylinder, commonProperties, properties, textures, envMaps, notifyParent) {
+    const textureNames = Array.from(textures, (texture) => texture.name);
+    textureNames.unshift('None');
+
+    const aoMapController = gui.add({ aoMap: 'None' }, 'aoMap', textureNames);
+    aoMapController.name("AO Map");
+
+    const aoIntensityController = gui.add(properties, 'aoMapIntensity', 0, 1, 0.01);
+    aoIntensityController.name("AO Intensity");
+    aoIntensityController.onChange(onChange);
+    aoIntensityController.disable(properties.aoMap == null);
+
+    aoMapController.onChange((textureName) => {
+        const texture = textures.find((texture) => texture.name === textureName);
+        if (typeof texture === "undefined") {
+            properties.aoMap = null;
+            aoIntensityController.disable(true);
+        } else {
+            properties.aoMap = texture.ao;
+            aoIntensityController.disable(false);
+        }
+        onChange();
+    });
+
+    const bumpMapNames = textures
+        .filter((texture) => texture.support.bump)
+        .map((texture) => texture.name);
+    bumpMapNames.unshift('None');
+    const bumpMapController = gui.add({ bumpMap: 'None' }, 'bumpMap', bumpMapNames);
+    bumpMapController.name("Bump Map");
+
+    const bumpScaleController = gui.add(properties, 'bumpScale', 0, 1, 0.01);
+    bumpScaleController.name("Bump Scale");
+    bumpScaleController.onChange(onChange);
+    bumpScaleController.disable(properties.bumpMap == null);
+
+    bumpMapController.onChange((textureName) => {
+        const texture = textures.find((texture) => texture.name === textureName);
+        if (typeof texture === "undefined") {
+            properties.bumpMap = null;
+            bumpScaleController.disable(true);
+        } else {
+            properties.bumpMap = texture.bump;
+            bumpScaleController.disable(false);
+        }
+        onChange();
+    });
+
+    const mapController = gui.add({ map: 'None' }, 'map', textureNames);
+    mapController.name("Color Map");
+
+    const colorController = gui.addColor(properties, 'color');
+    colorController.name("Color");
+    colorController.listen();
+    colorController.onChange(onChange);
+    colorController.disable(properties.map != null);
+
+    mapController.onChange((textureName) => {
+        const texture = textures.find((texture) => texture.name === textureName);
+        if (typeof texture === "undefined") {
+            properties.map = null;
+            colorController.disable(false);
+        } else {
+            properties.color = 0xffffff;
+            properties.map = texture.diffuse;
+            colorController.disable(true);
+        }
+        onChange();
+    });
+
+    const displacementController = gui.add({ displacement: 'None' }, 'displacement', textureNames);
+    displacementController.name("Displacement Map");
+
+    const displacementScaleController = gui.add(properties, 'displacementScale', 0, 1, 0.01);
+    displacementScaleController.name("Displacement Scale");
+    displacementScaleController.onChange(onChange);
+    displacementScaleController.disable(properties.displacementMap == null);
+
+    const displacementBiasController = gui.add(properties, 'displacementBias', 0, 10, 0.01);
+    displacementBiasController.name("Displacement Bias");
+    displacementBiasController.onChange(onChange);
+    displacementBiasController.disable(properties.displacementMap == null);
+
+    displacementController.onChange((textureName) => {
+        const texture = textures.find((texture) => texture.name === textureName);
+        if (typeof texture === "undefined") {
+            properties.displacementMap = null;
+            displacementScaleController.disable(true);
+            displacementBiasController.disable(true);
+        } else {
+            properties.displacementMap = texture.displacement;
+            displacementScaleController.disable(false);
+            displacementBiasController.disable(false);
+        }
+        onChange();
+    });
+
+    gui
+        .addColor(properties, 'emissive')
+        .name("Emissive")
+        .listen()
+        .onChange(onChange);
+
+    const emissiveMapNames = textures
+        .filter((texture) => texture.support.emissive)
+        .map((texture) => texture.name);
+    emissiveMapNames.unshift('None');
+    gui
+        .add({ emissive: 'None' }, 'emissive', emissiveMapNames)
+        .name("Emissive Map")
+        .onChange((textureName) => {
+            const texture = textures.find((texture) => texture.name === textureName);
+            if (typeof texture === "undefined") {
+                properties.emissiveMap = null;
+                properties.emissive = 0x000000;
+            } else {
+                properties.emissiveMap = texture.emissive;
+                properties.emissive = 0xffffff;
+            }
+            onChange();
+        });
+
+    gui
+        .add(properties, 'emissiveIntensity', 0, 40, 0.1)
+        .name("Emissive Intensity")
+        .onChange(onChange);
+
+    const envMapController = gui
+        .add(properties, 'envMap', envMaps)
+        .name("Env. Map");
+    
+    const envMappingController = gui
+        .add({ mapping: 'Reflection' }, 'mapping', ['Reflection', 'Refraction'])
+        .name("Mapping")
+        .disable(true)
+        .onChange((mapping) => {
+            if (mapping === 'Reflection') {
+                if (properties.envMap == envMaps.InSitu) {
+                    properties.envMap.mapping = THREE.CubeReflectionMapping;
+                } else {
+                    properties.envMap.mapping = THREE.EquirectangularReflectionMapping;
+                }
+            } else {
+                if (properties.envMap == envMaps.InSitu) {
+                    properties.envMap.mapping = THREE.CubeRefractionMapping;
+                } else {
+                    properties.envMap.mapping = THREE.EquirectangularRefractionMapping;
+                }
+            }
+            onChange();
+        });
+    
+    const reflectivityController = gui
+        .add(properties, 'reflectivity', 0, 1, 0.01)
+        .name("Reflectivity")
+        .disable(true)
+        .onChange(onChange);
+
+    const iorController = gui
+        .add(properties, 'refractionRatio', 0, 1, 0.01)
+        .name("IOR")
+        .disable(true)
+        .onChange(onChange);
+    
+    envMapController.onChange((envMap) => {
+        envMappingController.disable(envMap == null);
+        reflectivityController.disable(envMap == null);
+        iorController.disable(envMap == null);
+        if (envMap != null) { properties.color = 0xffffff; }
+        onChange();
+    });
+
+    const normalMapController = gui.add({ normal: 'None' }, 'normal', textureNames);
+    normalMapController.name("Normal Map");
+
+    const normalScaleXController = gui.add(properties.normalScale, 'x', 0, 1, 0.01);
+    normalScaleXController.name("Normal Scale X");
+    normalScaleXController.onChange(onChange);
+    normalScaleXController.disable(properties.normalMap == null);
+
+    const normalScaleYController = gui.add(properties.normalScale, 'y', 0, 1, 0.01);
+    normalScaleYController.name("Normal Scale Y");
+    normalScaleYController.onChange(onChange);
+    normalScaleYController.disable(properties.normalMap == null);
+
+    normalMapController.onChange((textureName) => {
+        const texture = textures.find((texture) => texture.name === textureName);
+        if (typeof texture === "undefined") {
+            properties.normalMap = null;
+            normalScaleXController.disable(true);
+            normalScaleYController.disable(true);
+        } else {
+            properties.normalMap = texture.normal;
+            normalScaleXController.disable(false);
+            normalScaleYController.disable(false);
+        }
+        onChange();
+    });
+
+    const specularMapNames = textures
+        .filter((texture) => texture.support.specular)
+        .map((texture) => texture.name);
+    specularMapNames.unshift('None');
+
+    gui
+        .add({ specular: 'None' }, 'specular', specularMapNames)
+        .name("Specular Map")
+        .onChange((textureName) => {
+            const texture = textures.find((texture) => texture.name === textureName);
+            if (typeof texture === "undefined") {
+                properties.specularMap = null;
+            } else {
+                properties.specularMap = texture.specular;
+            }
+            onChange();
+        });
+
+
+    gui.add(properties, 'flatShading')
+        .name("Flat Shading")
+        .onChange(onChange);
+
+    gui
+        .add(properties, 'wireframe')
+        .name("Wireframe")
+        .onChange(onChange);
+
+    function onChange() {
+        const phong = new THREE.MeshPhongMaterial();
+        phong.setValues(commonProperties);
+        phong.setValues(properties);
+        cylinder.material = phong;
+
+        notifyParent();
     }
 }

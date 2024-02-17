@@ -50,7 +50,7 @@ function main() {
     // Telelumen lights
     const ambientLightInitialState = {
         color: 0xffffff,
-        intensity: 0.05,
+        intensity: 0.2,
     };
     const pointLightInitialState = {
         color: 0xffffff,
@@ -95,7 +95,7 @@ function main() {
     // Material textures
     const textures = initializeTextures();
 
-    // In situ environment map
+    // In situ environment maps
     const coneRenderTarget = new THREE.WebGLCubeRenderTarget(256, { 
         generateMipmaps: true, 
         minFilter: THREE.LinearMipmapLinearFilter,
@@ -105,6 +105,15 @@ function main() {
     coneCamera.position.copy(telelumen.cone.position);
     scene.add(coneCamera);
 
+    const cylinderRenderTarget = new THREE.WebGLCubeRenderTarget(256, { 
+        generateMipmaps: true, 
+        minFilter: THREE.LinearMipmapLinearFilter,
+        colorSpace: THREE.SRGBColorSpace,
+    });
+    const cylinderCamera = new THREE.CubeCamera(0.1, 20, cylinderRenderTarget);
+    cylinderCamera.position.copy(telelumen.cylinder.position);
+    scene.add(cylinderCamera);
+
     // Outdoor environment map
     const textureLoader = new THREE.TextureLoader();
     const soccerFieldMap = textureLoader.load('/envs/soccer_field.jpg');
@@ -113,24 +122,26 @@ function main() {
 
     // GUI
     const gui = new GUI();
-    gui.onChange(() => {
+    const onNotify = () => {
+        // Update in-situ maps, the order is matter here
         telelumen.cone.visible = false;
         coneCamera.update(renderer, scene);
-
         telelumen.cone.visible = true;
-        requestRender();
-    });
 
-    setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox);
+        telelumen.cylinder.visible = false;
+        cylinderCamera.update(renderer, scene);
+        telelumen.cylinder.visible = true;
+
+        requestRender();
+    }
+
+    setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox, onNotify);
     setupMaterialGUI(
         gui, telelumen.cone, telelumen.cylinder, telelumen.sphere, textures, {
-        cone: {
-            None: null,
-            InSitu: coneRenderTarget.texture,
-            SoccerField: soccerFieldMap,
-        }
-    });
-    setupWallGUI(gui, telelumen);
+            cone: { None: null, SoccerField: soccerFieldMap, InSitu: coneRenderTarget.texture },
+            cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
+        }, onNotify);
+    setupWallGUI(gui, telelumen, onNotify);
 
     // Start the render loop
     render();
