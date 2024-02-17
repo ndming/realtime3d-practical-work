@@ -155,7 +155,7 @@ function main() {
             cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
             sphere: { None: null, InSitu: sphereRenderTarget.texture },
         }, onNotify);
-    setupWallGUI(gui, telelumen, onNotify);
+    setupWallGUI(gui, telelumen, null, onNotify);
 
     // Start the render loop
     render();

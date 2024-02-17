@@ -14,6 +14,7 @@ export default defineConfig({
         exercise_22: resolve(__dirname, 'exercises/graphic_user_interface.html'),
         exercise_23: resolve(__dirname, 'exercises/lightings.html'),
         exercise_24: resolve(__dirname, 'exercises/material_properties.html'),
+        exercise_25: resolve(__dirname, 'exercises/surface_lighting.html'),
       },
     },
   },

@@ -1,16 +1,19 @@
 import * as THREE from 'three';
+import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js'
 
 export {
     setupTelelumen,
     setupTelelumenLights,
     setupWallGUI,
     setupLightGUI,
+    setupSecondaryLightGUI,
+    setupTelelumenSecondaryLights,
     setupMaterialGUI,
 };
 
 function setupTelelumen(scene, box) {
     const tableGeometry = new THREE.BoxGeometry(8, 2, 6);
-    const tableMaterial = new THREE.MeshToonMaterial({ color: 0x999999 });
+    const tableMaterial = new THREE.MeshStandardMaterial({ color: 0xbcbcbc, roughness: 0.1, metalness: 0 });
     const table = new THREE.Mesh(tableGeometry, tableMaterial);
     table.position.set(0, 1, 0);
     table.position.add(box.position);
@@ -173,13 +176,46 @@ function setupTelelumenLights(scene, initialState, box) {
         spot: spotLightHelper,
         hemisphere: hemisphereLightHelper
     };
+
     return {
         ambient: ambientLight,
-        primary: primaryLights
+        primary: primaryLights,
     };
 }
 
-function setupWallGUI(gui, telelumen, notifyParent) {
+function setupTelelumenSecondaryLights(scene, initialState, box, wallLeft, wallRight) {
+    // Area light left
+    const rectLeft = new THREE.RectAreaLight(initialState.rectLeft.color, initialState.rectLeft.intensity);
+    rectLeft.width = box.depth;
+    rectLeft.height = box.height;
+    rectLeft.position.copy(wallLeft.position);
+    rectLeft.lookAt(0, 0, 0);
+    const rectLeftHelper = new RectAreaLightHelper(rectLeft);
+
+    // Area light left
+    const rectRight = new THREE.RectAreaLight(initialState.rectRight.color, initialState.rectRight.intensity);
+    rectRight.width = box.depth;
+    rectRight.height = box.height;
+    rectRight.position.copy(wallRight.position);
+    rectRight.lookAt(0, 0, 0);
+    const rectRightHelper = new RectAreaLightHelper(rectRight);
+
+    if (initialState.rectLeft.enabled) {
+        scene.add(rectLeft);
+        scene.add(rectLeftHelper);
+    }
+    if (initialState.rectRight.enabled) {
+        scene.add(rectRight);
+        scene.add(rectRightHelper);
+    }
+
+    return {
+        helperLeft: rectLeftHelper,
+        helperRight: rectRightHelper,
+    }
+}
+
+function setupWallGUI(gui, telelumen, secondaryLights, notifyParent) {
     const wallGUI = gui.addFolder('Walls');
     wallGUI
         .add({ side: THREE.FrontSide }, 'side', { Front: THREE.FrontSide, Double: THREE.DoubleSide })
@@ -197,17 +233,77 @@ function setupWallGUI(gui, telelumen, notifyParent) {
     wallLeftGUI
         .addColor(telelumen.leftWall.material, 'color')
         .name("Color")
-        .onChange(notifyParent);
+        .onChange((color) => {
+            if (secondaryLights != null) {
+                secondaryLights.helperLeft.color = color;
+                secondaryLights.helperLeft.light.color = color;
+            }
+            notifyParent();
+        });
 
     const wallRightGUI = wallGUI.addFolder('Wall Right');
     wallRightGUI
         .addColor(telelumen.rightWall.material, 'color')
         .name("Color")
-        .onChange(notifyParent);;
+        .onChange((color) => {
+            if (secondaryLights != null) {
+                secondaryLights.helperRight.color = color;
+                secondaryLights.helperRight.light.color = color;
+            }
+            notifyParent();
+        });
 
     wallGUI.close();
     wallLeftGUI.close();
     wallRightGUI.close();
+}
+
+function setupSecondaryLightGUI(gui, secondaryLights, scene, initialState, notifyParent) {
+    const secondaryLightGUI = gui.addFolder('Secondary Lights');
+
+    const rectLeftGUI = secondaryLightGUI.addFolder("Area Light Left");
+    rectLeftGUI
+        .add({ enabled: initialState.rectLeft.enabled }, 'enabled')
+        .name("Enabled")
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(secondaryLights.helperLeft);
+                scene.add(secondaryLights.helperLeft.light);
+            } else {
+                scene.remove(secondaryLights.helperLeft);
+                scene.remove(secondaryLights.helperLeft.light);
+            }
+            notifyParent();
+        });
+    rectLeftGUI
+        .add({ intensity: initialState.rectLeft.intensity }, 'intensity', 0, 20, 0.1)
+        .name("Intensity")
+        .onChange((intensity) => {
+            secondaryLights.helperLeft.light.intensity = intensity;
+            notifyParent();
+        });
+
+    const rectRightGUI = secondaryLightGUI.addFolder("Area Light Right");
+    rectRightGUI
+        .add({ enabled: initialState.rectRight.enabled }, 'enabled')
+        .name("Enabled")
+        .onChange((enabled) => {
+            if (enabled) {
+                scene.add(secondaryLights.helperRight);
+                scene.add(secondaryLights.helperRight.light);
+            } else {
+                scene.remove(secondaryLights.helperRight);
+                scene.remove(secondaryLights.helperRight.light);
+            }
+            notifyParent();
+        });
+    rectRightGUI
+        .add({ intensity: initialState.rectRight.intensity }, 'intensity', 0, 20, 0.1)
+        .name("Intensity")
+        .onChange((intensity) => {
+            secondaryLights.helperRight.light.intensity = intensity;
+            notifyParent();
+        });
 }
 
 function setupLightGUI(gui, telelumenLights, scene, initialState, box, notifyParent) {
@@ -259,6 +355,8 @@ function setupLightGUI(gui, telelumenLights, scene, initialState, box, notifyPar
     primaryLightGUI.close();
 
     lightGUI.close();
+
+    return lightGUI;
 }
 
 function setupPointLightGUI(lightGUI, helper, scene, initialState, box, notifyParent) {
@@ -1521,7 +1619,7 @@ function setupPhysicalGUI(gui, sphere, commonProperties, properties, textures, e
             }
             onChange();
         });
-    
+
     gui
         .add(properties, 'sheen', 0, 1, 0.01)
         .name("Sheen")
@@ -1536,12 +1634,12 @@ function setupPhysicalGUI(gui, sphere, commonProperties, properties, textures, e
         .addColor(properties, 'sheenColor')
         .name("Sheen Color")
         .onChange(onChange);
-    
+
     gui
         .addColor(properties, 'specularColor')
         .name("Specular Color")
         .onChange(onChange);
-    
+
     gui
         .add(properties, 'specularIntensity', 0, 1, 0.01)
         .name("Specular Intensity")
@@ -1551,7 +1649,7 @@ function setupPhysicalGUI(gui, sphere, commonProperties, properties, textures, e
         .add(properties, 'thickness', 0, 5, 0.1)
         .name("Thickness")
         .onChange(onChange);
-    
+
     gui
         .add(properties, 'transmission', 0, 1, 0.01)
         .name("Transmission")

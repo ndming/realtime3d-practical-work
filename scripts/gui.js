@@ -46,7 +46,7 @@ function main() {
 
     const gui = new GUI();
     gui.onChange(_ => { requestRender(); });
-    setupWallGUI(gui, telelumen);
+    setupWallGUI(gui, telelumen, null, () => {});
 
     // Start the render loop
     render();
