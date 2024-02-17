@@ -13,6 +13,7 @@ export default defineConfig({
         exercise_21: resolve(__dirname, 'exercises/telelumen_modeling.html'),
         exercise_22: resolve(__dirname, 'exercises/graphic_user_interface.html'),
         exercise_23: resolve(__dirname, 'exercises/lightings.html'),
+        exercise_24: resolve(__dirname, 'exercises/material_properties.html'),
       },
     },
   },
