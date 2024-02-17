@@ -91,9 +91,8 @@ function main() {
     const telelumenLights = setupTelelumenLights(scene, initialState, telelumenBox);
 
     const gui = new GUI();
-    gui.onChange(_ => { requestRender(); });
-    setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox);
-    setupWallGUI(gui, telelumen, null, () => {});
+    setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox, requestRender);
+    setupWallGUI(gui, telelumen, null, requestRender);
 
     // Start the render loop
     render();

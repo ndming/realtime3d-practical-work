@@ -322,7 +322,7 @@ function setupLightGUI(gui, telelumenLights, scene, initialState, box, notifyPar
             }
             notifyParent();
         });
-    ambientLightGUI.addColor(ambientLight, 'color').name('Name').listen().onChange(notifyParent);
+    ambientLightGUI.addColor(ambientLight, 'color').name('Color').listen().onChange(notifyParent);
     ambientLightGUI.add(ambientLight, 'intensity', 0, 5, 0.01).name('Intensity').listen().onChange(notifyParent);
     ambientLightGUI.add({
         onReset: () => {
