@@ -114,7 +114,16 @@ function main() {
     cylinderCamera.position.copy(telelumen.cylinder.position);
     scene.add(cylinderCamera);
 
-    // Outdoor environment map
+    const sphereRenderTarget = new THREE.WebGLCubeRenderTarget(256, { 
+        generateMipmaps: true, 
+        minFilter: THREE.LinearMipmapLinearFilter,
+        colorSpace: THREE.SRGBColorSpace,
+    });
+    const sphereCamera = new THREE.CubeCamera(0.1, 20, sphereRenderTarget);
+    sphereCamera.position.copy(telelumen.sphere.position);
+    scene.add(sphereCamera);
+
+    // Outdoor environment maps
     const textureLoader = new THREE.TextureLoader();
     const soccerFieldMap = textureLoader.load('/envs/soccer_field.jpg');
     soccerFieldMap.mapping = THREE.EquirectangularReflectionMapping;
@@ -132,6 +141,10 @@ function main() {
         cylinderCamera.update(renderer, scene);
         telelumen.cylinder.visible = true;
 
+        telelumen.sphere.visible = false;
+        sphereCamera.update(renderer, scene);
+        telelumen.sphere.visible = true;
+
         requestRender();
     }
 
@@ -140,6 +153,7 @@ function main() {
         gui, telelumen.cone, telelumen.cylinder, telelumen.sphere, textures, {
             cone: { None: null, SoccerField: soccerFieldMap, InSitu: coneRenderTarget.texture },
             cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
+            sphere: { None: null, InSitu: sphereRenderTarget.texture },
         }, onNotify);
     setupWallGUI(gui, telelumen, onNotify);
 
