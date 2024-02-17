@@ -10,6 +10,7 @@ export {
     setupOrbitControls,
     setupCoordinateSystem,
     setupFlyControls,
+    setupTexturedCube,
 };
 
 function setupOrbitControls(camera, domElement, onCameraUpdate = () => { }) {
@@ -402,4 +403,120 @@ class SinCurve extends THREE.Curve {
 
         return optionalTarget.set(tx, ty, tz).multiplyScalar(this.scale);
     }
+}
+
+function setupTexturedCube(scene, texture) {
+    const vertices = [
+        // Front
+        { pos: [-1, -1,  1], norm: [ 0,  0,  1], uv: [0, 0], },
+        { pos: [ 1, -1,  1], norm: [ 0,  0,  1], uv: [1, 0], },
+        { pos: [-1,  1,  1], norm: [ 0,  0,  1], uv: [0, 1], },
+        { pos: [ 1,  1,  1], norm: [ 0,  0,  1], uv: [1, 1], },
+        // --
+        { pos: [-0.5, -0.5,  1], norm: [ 0,  0,  1], uv: [0.25, 0.25], },
+        { pos: [ 0.5, -0.5,  1], norm: [ 0,  0,  1], uv: [0.75, 0.25], },
+        { pos: [-0.5,  0.5,  1], norm: [ 0,  0,  1], uv: [0.25, 0.75], },
+        { pos: [ 0.5,  0.5,  1], norm: [ 0,  0,  1], uv: [0.75, 0.75], },
+        // Right
+        { pos: [ 1, -1,  1], norm: [ 1,  0,  0], uv: [0, 0], },
+        { pos: [ 1, -1, -1], norm: [ 1,  0,  0], uv: [1, 0], },
+        { pos: [ 1,  1,  1], norm: [ 1,  0,  0], uv: [0, 1], },
+        { pos: [ 1,  1, -1], norm: [ 1,  0,  0], uv: [1, 1], },
+        // --
+        { pos: [ 1, -0.5,  0.5], norm: [ 1,  0,  0], uv: [0.25, 0.25], },
+        { pos: [ 1, -0.5, -0.5], norm: [ 1,  0,  0], uv: [0.75, 0.25], },
+        { pos: [ 1,  0.5,  0.5], norm: [ 1,  0,  0], uv: [0.25, 0.75], },
+        { pos: [ 1,  0.5, -0.5], norm: [ 1,  0,  0], uv: [0.75, 0.75], },
+        // Back
+        { pos: [ 1, -1, -1], norm: [ 0,  0, -1], uv: [0, 0], },
+        { pos: [-1, -1, -1], norm: [ 0,  0, -1], uv: [1, 0], },
+        { pos: [ 1,  1, -1], norm: [ 0,  0, -1], uv: [0, 1], },
+        { pos: [-1,  1, -1], norm: [ 0,  0, -1], uv: [1, 1], },
+        // --
+        { pos: [ 0.5, -0.5, -1], norm: [ 0,  0, -1], uv: [0.25, 0.25], },
+        { pos: [-0.5, -0.5, -1], norm: [ 0,  0, -1], uv: [0.75, 0.25], },
+        { pos: [ 0.5,  0.5, -1], norm: [ 0,  0, -1], uv: [0.25, 0.75], },
+        { pos: [-0.5,  0.5, -1], norm: [ 0,  0, -1], uv: [0.75, 0.75], },
+        // Left
+        { pos: [-1, -1, -1], norm: [-1,  0,  0], uv: [0, 0], },
+        { pos: [-1, -1,  1], norm: [-1,  0,  0], uv: [1, 0], },
+        { pos: [-1,  1, -1], norm: [-1,  0,  0], uv: [0, 1], },
+        { pos: [-1,  1,  1], norm: [-1,  0,  0], uv: [1, 1], },
+        // --
+        { pos: [-1, -0.5, -0.5], norm: [-1,  0,  0], uv: [0.25, 0.25], },
+        { pos: [-1, -0.5,  0.5], norm: [-1,  0,  0], uv: [0.75, 0.25], },
+        { pos: [-1,  0.5, -0.5], norm: [-1,  0,  0], uv: [0.25, 0.75], },
+        { pos: [-1,  0.5,  0.5], norm: [-1,  0,  0], uv: [0.75, 0.75], },
+        // Top
+        { pos: [ 1,  1, -1], norm: [ 0,  1,  0], uv: [0, 0], },
+        { pos: [-1,  1, -1], norm: [ 0,  1,  0], uv: [1, 0], },
+        { pos: [ 1,  1,  1], norm: [ 0,  1,  0], uv: [0, 1], },
+        { pos: [-1,  1,  1], norm: [ 0,  1,  0], uv: [1, 1], },
+        // --
+        { pos: [ 0.5,  1, -0.5], norm: [ 0,  1,  0], uv: [0.25, 0.25], },
+        { pos: [-0.5,  1, -0.5], norm: [ 0,  1,  0], uv: [0.75, 0.25], },
+        { pos: [ 0.5,  1,  0.5], norm: [ 0,  1,  0], uv: [0.25, 0.75], },
+        { pos: [-0.5,  1,  0.5], norm: [ 0,  1,  0], uv: [0.75, 0.75], },
+        // Bottom
+        { pos: [ 1, -1,  1], norm: [ 0, -1,  0], uv: [0, 0], },
+        { pos: [-1, -1,  1], norm: [ 0, -1,  0], uv: [1, 0], },
+        { pos: [ 1, -1, -1], norm: [ 0, -1,  0], uv: [0, 1], },
+        { pos: [-1, -1, -1], norm: [ 0, -1,  0], uv: [1, 1], },
+        // --
+        { pos: [ 0.5, -1,  0.5], norm: [ 0, -1,  0], uv: [0.25, 0.25], },
+        { pos: [-0.5, -1,  0.5], norm: [ 0, -1,  0], uv: [0.75, 0.25], },
+        { pos: [ 0.5, -1, -0.5], norm: [ 0, -1,  0], uv: [0.25, 0.75], },
+        { pos: [-0.5, -1, -0.5], norm: [ 0, -1,  0], uv: [0.75, 0.75], },
+    ];
+
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    for (const vertex of vertices) {
+        positions.push(...vertex.pos);
+        normals.push(...vertex.norm);
+        uvs.push(...vertex.uv);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
+
+    const indices = [];
+    for (let i = 0; i < 6; ++i) {
+        indices.push(8 * i + 0); indices.push(8 * i + 1); indices.push(8 * i + 4);
+        indices.push(8 * i + 4); indices.push(8 * i + 1); indices.push(8 * i + 5);
+        indices.push(8 * i + 5); indices.push(8 * i + 1); indices.push(8 * i + 3);
+        indices.push(8 * i + 5); indices.push(8 * i + 3); indices.push(8 * i + 7);
+        indices.push(8 * i + 7); indices.push(8 * i + 3); indices.push(8 * i + 2);
+        indices.push(8 * i + 6); indices.push(8 * i + 7); indices.push(8 * i + 2);
+        indices.push(8 * i + 2); indices.push(8 * i + 0); indices.push(8 * i + 6);
+        indices.push(8 * i + 6); indices.push(8 * i + 0); indices.push(8 * i + 4);
+    }
+    geometry.setIndex(indices);
+    
+    const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+    const leftMaterial = new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide });
+    const rightMaterial = new THREE.MeshNormalMaterial({ map: texture, side: THREE.DoubleSide });
+
+    const texturedCube = new THREE.Mesh(geometry, material);
+    const leftCube = new THREE.Mesh(geometry, leftMaterial);
+    const rightCube = new THREE.Mesh(geometry, rightMaterial);
+
+    texturedCube.scale.set(2, 2, 2);
+    leftCube.position.set(-6, 0, 0);
+    leftCube.scale.set(2, 2, 2);
+    rightCube.scale.set(2, 2, 2);
+    rightCube.position.set(6, 0, 0);
+
+    const pointLight = new THREE.PointLight(0xffffff, 16);
+    pointLight.position.set(-8, 4, 4);
+    const pointLightHelper = new THREE.PointLightHelper(pointLight);
+
+    scene.add(texturedCube);
+    scene.add(leftCube);
+    scene.add(rightCube);
+    scene.add(pointLight);
+    scene.add(pointLightHelper);
 }

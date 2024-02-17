@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { setupOrbitControls, setupCoordinateSystem } from './setup';
+import { setupOrbitControls, setupCoordinateSystem, setupTexturedCube } from './setup';
 
 main();
 
@@ -27,6 +27,11 @@ function main() {
     onResize();
 
     setupCoordinateSystem(scene);
+
+    // The textured cube
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('/textures/grenouille.jpg', requestRender);
+    setupTexturedCube(scene, texture);
 
     // Start the render loop
     render();
