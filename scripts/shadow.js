@@ -7,8 +7,12 @@ import {
     setupTelelumenLights,
     setupWallGUI,
     setupLightGUI,
+    setupTelelumenSecondaryLights,
     setupMaterialGUI,
+    setupSecondaryLightGUI,
+    setupShadowGUI,
 } from './telesetup';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 main();
 
@@ -16,6 +20,7 @@ function main() {
     // Render context
     const canvas = document.querySelector("canvas");
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.shadowMap.enabled = true;
 
     // Scene
     const scene = new THREE.Scene();
@@ -47,21 +52,24 @@ function main() {
     }
     const telelumen = setupTelelumen(scene, telelumenBox);
 
+    // For area light
+    RectAreaLightUniformsLib.init();
+
     // Telelumen lights
     const ambientLightInitialState = {
         color: 0xffffff,
-        intensity: 0.2,
+        intensity: 0.01,
     };
     const pointLightInitialState = {
         color: 0xffffff,
         decay: 2,
         distance: 16,
         intensity: 20,
-        position: new THREE.Vector3(0, telelumenBoxHeight - 4, 0),
+        position: new THREE.Vector3(0, telelumenBoxHeight - 2, 0),
     };
     const directionalLightInitialState = {
         color: 0xffffff,
-        intensity: 10,
+        intensity: 9,
         position: new THREE.Vector3(0, telelumenBoxHeight - 1, 0),
         dirPhi: 0,
         dirTheta: -Math.PI / 2
@@ -82,21 +90,34 @@ function main() {
         intensity: 2,
         position: new THREE.Vector3(0, telelumenBoxHeight - 4, 0),
     };
+    const rectLightLeftInitialState = {
+        color: 0xff0000,
+        enabled: false,
+        intensity: 1,
+    };
+    const rectLightRightInitialState = {
+        color: 0x00ff00,
+        enabled: false,
+        intensity: 1,
+    };
     const initialState = {
         ambient: ambientLightInitialState,
         point: pointLightInitialState,
         directional: directionalLightInitialState,
         spot: spotLightInitialState,
         hemisphere: hemisphereLightInitialState,
+        rectLeft: rectLightLeftInitialState,
+        rectRight: rectLightRightInitialState,
     };
     const telelumenLights = setupTelelumenLights(scene, initialState, telelumenBox);
+    const secondaryLights = setupTelelumenSecondaryLights(scene, initialState, telelumenBox, telelumen.leftWall, telelumen.rightWall);
 
     // Material textures
     const textures = initializeTextures();
 
     // In situ environment maps
-    const coneRenderTarget = new THREE.WebGLCubeRenderTarget(256, { 
-        generateMipmaps: true, 
+    const coneRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
+        generateMipmaps: true,
         minFilter: THREE.LinearMipmapLinearFilter,
         colorSpace: THREE.SRGBColorSpace,
     });
@@ -104,8 +125,8 @@ function main() {
     coneCamera.position.copy(telelumen.cone.position);
     scene.add(coneCamera);
 
-    const cylinderRenderTarget = new THREE.WebGLCubeRenderTarget(256, { 
-        generateMipmaps: true, 
+    const cylinderRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
+        generateMipmaps: true,
         minFilter: THREE.LinearMipmapLinearFilter,
         colorSpace: THREE.SRGBColorSpace,
     });
@@ -113,8 +134,8 @@ function main() {
     cylinderCamera.position.copy(telelumen.cylinder.position);
     scene.add(cylinderCamera);
 
-    const sphereRenderTarget = new THREE.WebGLCubeRenderTarget(256, { 
-        generateMipmaps: true, 
+    const sphereRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
+        generateMipmaps: true,
         minFilter: THREE.LinearMipmapLinearFilter,
         colorSpace: THREE.SRGBColorSpace,
     });
@@ -143,18 +164,19 @@ function main() {
         telelumen.sphere.visible = false;
         sphereCamera.update(renderer, scene);
         telelumen.sphere.visible = true;
-
         requestRender();
     }
 
-    setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox, onNotify);
+    const lightGUI = setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox, onNotify);
+    setupSecondaryLightGUI(lightGUI, secondaryLights, scene, initialState, onNotify);
     setupMaterialGUI(
         gui, telelumen.cone, telelumen.cylinder, telelumen.sphere, textures, {
-            cone: { None: null, SoccerField: soccerFieldMap, InSitu: coneRenderTarget.texture },
-            cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
-            sphere: { None: null, SoccerField: soccerFieldMap, InSitu: sphereRenderTarget.texture },
-        }, onNotify);
-    setupWallGUI(gui, telelumen, null, onNotify);
+        cone: { None: null, SoccerField: soccerFieldMap, InSitu: coneRenderTarget.texture },
+        cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
+        sphere: { None: null, SoccerField: soccerFieldMap, InSitu: sphereRenderTarget.texture },
+    }, onNotify);
+    setupWallGUI(gui, telelumen, secondaryLights, onNotify);
+    setupShadowGUI(lightGUI, telelumenLights, onNotify);
 
     // Start the render loop
     render();

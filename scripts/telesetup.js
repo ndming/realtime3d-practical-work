@@ -9,6 +9,7 @@ export {
     setupSecondaryLightGUI,
     setupTelelumenSecondaryLights,
     setupMaterialGUI,
+    setupShadowGUI,
 };
 
 function setupTelelumen(scene, box) {
@@ -17,23 +18,28 @@ function setupTelelumen(scene, box) {
     const table = new THREE.Mesh(tableGeometry, tableMaterial);
     table.position.set(0, 1, 0);
     table.position.add(box.position);
+    table.receiveShadow = true;
+    table.castShadow = true;
 
     const floorGeometry = new THREE.PlaneGeometry(box.width, box.depth);
     const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotateX(-Math.PI / 2);
     floor.position.add(box.position);
+    floor.receiveShadow = true;
 
     const ceilling = new THREE.Mesh(floorGeometry, floorMaterial);
     ceilling.rotateX(Math.PI / 2);
     ceilling.position.set(0, box.height, 0);
     ceilling.position.add(box.position);
+    ceilling.receiveShadow = true;
 
     const backWallGeometry = new THREE.PlaneGeometry(box.width, box.height);
     const backWallMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
     const backWall = new THREE.Mesh(backWallGeometry, backWallMaterial);
     backWall.position.set(0, box.height / 2, -box.depth / 2);
     backWall.position.add(box.position);
+    backWall.receiveShadow = true;
 
     const leftWallGeometry = new THREE.PlaneGeometry(box.height, box.depth);
     const leftWallMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
@@ -42,6 +48,7 @@ function setupTelelumen(scene, box) {
     leftWall.rotateZ(-Math.PI / 2);
     leftWall.position.set(-box.width / 2, box.height / 2, 0);
     leftWall.position.add(box.position);
+    leftWall.receiveShadow = true;
 
     const rightWallGeomnetry = new THREE.PlaneGeometry(box.height, box.depth);
     const rightWallMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
@@ -50,24 +57,31 @@ function setupTelelumen(scene, box) {
     rightWall.rotateZ(-Math.PI / 2);
     rightWall.position.set(box.width / 2, box.height / 2, 0);
     rightWall.position.add(box.position);
+    rightWall.receiveShadow = true;
 
     const coneMaterial = new THREE.MeshLambertMaterial({ color: 0x66ffcc });
     const coneGeometry = new THREE.ConeGeometry(1, 4, 40, 12);
     const cone = new THREE.Mesh(coneGeometry, coneMaterial);
     cone.position.set(-2, 4, -1);
     cone.position.add(box.position);
+    cone.castShadow = true;
+    cone.receiveShadow = true;
 
     const sphereMaterial = new THREE.MeshPhysicalMaterial({ color: 0x6699ff });
     const sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(0, 3, 1.5);
     sphere.position.add(box.position);
+    sphere.castShadow = true;
+    sphere.receiveShadow = true;
 
     const cylinderMaterial = new THREE.MeshPhongMaterial({ color: 0xff6666 });
     const cylinderGeometry = new THREE.CylinderGeometry(1.5, 1.5, 2, 64, 12);
     const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
     cylinder.position.set(2, 3, -0.8);
     cylinder.position.add(box.position);
+    cylinder.castShadow = true;
+    cylinder.receiveShadow = true;
 
     scene.add(table);
     scene.add(floor);
@@ -107,7 +121,7 @@ function setupTelelumenLights(scene, initialState, box) {
         initialState.point.distance,
         initialState.point.decay
     );
-    pointLight.position.add(initialState.point.position);
+    pointLight.position.copy(initialState.point.position);
     pointLight.position.add(box.position);
     const pointLightHelper = new THREE.PointLightHelper(pointLight, 1, initialState.point.color);
     scene.add(pointLight);
@@ -118,8 +132,7 @@ function setupTelelumenLights(scene, initialState, box) {
         initialState.directional.color,
         initialState.directional.intensity
     );
-    directionalLight.position.set(0, 0, 0);
-    directionalLight.position.add(initialState.directional.position);
+    directionalLight.position.copy(initialState.directional.position);
     directionalLight.position.add(box.position);
     const phi = initialState.directional.dirPhi;
     const theta = initialState.directional.dirTheta;
@@ -128,8 +141,7 @@ function setupTelelumenLights(scene, initialState, box) {
         Math.sin(theta),
         Math.cos(theta) * Math.sin(phi)
     );
-    directionalLight.target.position.set(0, 0, 0);
-    directionalLight.target.position.add(target);
+    directionalLight.target.position.copy(target);
     directionalLight.target.position.add(initialState.directional.position);
     directionalLight.target.position.add(box.position);
     const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 1);
@@ -143,19 +155,9 @@ function setupTelelumenLights(scene, initialState, box) {
         initialState.spot.penumbra,
         initialState.spot.decay
     );
-    spotLight.position.set(0, 0, 0);
-    spotLight.position.add(initialState.spot.position);
+    spotLight.position.copy(initialState.spot.position);
     spotLight.position.add(box.position);
-    const spotPhi = initialState.spot.dirPhi;
-    const spotTheta = initialState.spot.dirTheta;
-    const spotTarget = new THREE.Vector3(
-        Math.sin(spotTheta) * Math.cos(spotPhi),
-        Math.cos(spotTheta),
-        Math.sin(spotTheta) * Math.sin(spotPhi)
-    );
-    spotLight.target.position.set(0, 0, 0);
-    spotLight.target.position.add(spotTarget);
-    spotLight.target.position.add(initialState.spot.position);
+    spotLight.target.position.copy(initialState.spot.target);
     spotLight.target.position.add(box.position);
     const spotLightHelper = new THREE.SpotLightHelper(spotLight, initialState.spot.color);
 
@@ -165,8 +167,7 @@ function setupTelelumenLights(scene, initialState, box) {
         initialState.hemisphere.groundColor,
         initialState.hemisphere.intensity,
     );
-    hemisphereLight.position.set(0, 0, 0);
-    hemisphereLight.position.add(initialState.hemisphere.position);
+    hemisphereLight.position.copy(initialState.hemisphere.position);
     hemisphereLight.position.add(box.position);
     const hemisphereLightHelper = new THREE.HemisphereLightHelper(hemisphereLight);
 
@@ -304,6 +305,140 @@ function setupSecondaryLightGUI(gui, secondaryLights, scene, initialState, notif
             secondaryLights.helperRight.light.intensity = intensity;
             notifyParent();
         });
+}
+
+function setupShadowGUI(gui, telelumenLights, notifyParent) {
+    const primaryLightGUI = gui.foldersRecursive()[1];
+    const folders = primaryLightGUI.foldersRecursive();
+
+    const pointLightGUI = folders[0];
+    const pointHelper = telelumenLights.primary.point;
+    setupPointLightShadowGUI(pointLightGUI, pointHelper, notifyParent);
+
+    const directionalLightGUI = folders[1];
+    const directionalHelper = telelumenLights.primary.directional;
+    setupDirectionalLightShadowGUI(directionalLightGUI, directionalHelper, notifyParent);
+
+    const spotLightGUI = folders[2];
+    const spotHelper = telelumenLights.primary.spot;
+    setupSpotLightShadowGUI(spotLightGUI, spotHelper, notifyParent);
+}
+
+function setupPointLightShadowGUI(gui, helper, notifyParent) {
+    helper.light.castShadow = true;
+    gui
+        .add(helper.light, 'castShadow')
+        .name("Cast Shadow")
+        .onChange(notifyParent);
+
+    gui
+        .add(helper.light.shadow.camera, 'near', 0.1, 20, 0.5)
+        .name("Near")
+        .onChange(notifyParent);
+}
+
+function setupDirectionalLightShadowGUI(gui, helper, notifyParent) {
+    helper.light.castShadow = true;
+    gui
+        .add(helper.light, 'castShadow')
+        .name("Cast Shadow")
+        .onChange(notifyParent);
+
+    helper.light.shadow.camera.left = -11;
+    helper.light.shadow.camera.right = 11;
+    gui
+        .add(new DimensionGUIHelper(helper.light.shadow.camera, 'left', 'right'), 'value', 1, 30, 0.1)
+        .name("Width")
+        .onChange(updateShadowCamera);
+
+    helper.light.shadow.camera.bottom = -11;
+    helper.light.shadow.camera.top = 11;
+    gui
+        .add(new DimensionGUIHelper(helper.light.shadow.camera, 'bottom', 'top'), 'value', 1, 30, 0.1)
+        .name("Height")
+        .onChange(updateShadowCamera);
+
+    helper.light.shadow.camera.near = 0.5;
+    helper.light.shadow.camera.far = 30;
+    const minMaxGUIHelper = new MinMaxGUIHelper(helper.light.shadow.camera, 'near', 'far', 0.1);
+    gui
+        .add(minMaxGUIHelper, 'min', 0.1, 20, 0.5)
+        .name("Near")
+        .onChange(updateShadowCamera);
+    gui
+        .add(minMaxGUIHelper, 'max', 0.1, 50, 0.5)
+        .name("Far")
+        .onChange(updateShadowCamera);
+
+
+    function updateShadowCamera() {
+        helper.light.target.updateMatrixWorld();
+        helper.update();
+        helper.light.shadow.camera.updateProjectionMatrix();
+        notifyParent();
+    }
+}
+
+function setupSpotLightShadowGUI(gui, helper, notifyParent) {
+    helper.light.castShadow = true;
+    gui
+        .add(helper.light, 'castShadow')
+        .name("Cast Shadow")
+        .onChange(updateShadowCamera);
+
+    gui
+        .add(helper.light.shadow.camera, 'near', 0.1, 20, 0.5)
+        .name("Near")
+        .onChange(updateShadowCamera);
+
+    function updateShadowCamera() {
+        helper.light.target.updateMatrixWorld();
+        helper.light.shadow.camera.updateProjectionMatrix();
+        helper.update();
+        notifyParent();
+    }
+}
+
+class DimensionGUIHelper {
+    constructor(obj, minProp, maxProp) {
+        this.obj = obj;
+        this.minProp = minProp;
+        this.maxProp = maxProp;
+    }
+    get value() {
+        return this.obj[this.maxProp] * 2;
+    }
+    set value(v) {
+        this.obj[this.maxProp] = v / 2;
+        this.obj[this.minProp] = v / -2;
+    }
+}
+
+class MinMaxGUIHelper {
+    constructor(obj, minProp, maxProp, minDif) {
+        this.obj = obj;
+        this.minProp = minProp;
+        this.maxProp = maxProp;
+        this.minDif = minDif;
+    }
+
+    get min() {
+        return this.obj[this.minProp];
+    }
+
+    set min(v) {
+        this.obj[this.minProp] = v;
+        this.obj[this.maxProp] = Math.max(this.obj[this.maxProp], v + this.minDif);
+    }
+
+    get max() {
+        return this.obj[this.maxProp];
+    }
+
+    set max(v) {
+        this.obj[this.maxProp] = v;
+        this.min = this.min; // this will call the min setter
+    }
 }
 
 function setupLightGUI(gui, telelumenLights, scene, initialState, box, notifyParent) {
@@ -543,11 +678,6 @@ function setupDirectionalLightGUI(lightGUI, helper, scene, initialState, box, no
 }
 
 function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyParent) {
-    const currentDirection = {
-        phi: initialState.dirPhi,
-        theta: initialState.dirTheta
-    };
-
     lightGUI
         .add({ enabled: false }, 'enabled')
         .name('Enabled')
@@ -578,7 +708,10 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyPar
         .add(helper.light, 'angle', 0, Math.PI, 0.01)
         .name("Angle")
         .listen()
-        .onChange((_) => { helper.update(); });
+        .onChange((_) => {
+            helper.update();
+            notifyParent();
+        });
     lightGUI
         .addColor(helper.light, 'color')
         .name("Color")
@@ -612,7 +745,7 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyPar
         .listen()
         .onChange(notifyParent);
     lightGUI
-        .add(helper.light.position, 'x', -box.width / 2 + 1.5, box.width / 2 - 1.5, 0.01)
+        .add(helper.light.position, 'x', -box.width / 2 + 1, box.width / 2 - 1, 0.01)
         .name("Position X")
         .listen()
         .onChange((_) => {
@@ -620,7 +753,7 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyPar
             notifyParent();
         });
     lightGUI
-        .add(helper.light.position, 'y', -box.height / 2 + 1.5, box.height / 2 - 1.5, 0.01)
+        .add(helper.light.position, 'y', -box.height / 2 + 0.5, box.height / 2 - 0.5, 0.01)
         .name("Position Y")
         .listen()
         .onChange((_) => {
@@ -628,42 +761,35 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyPar
             notifyParent();
         });
     lightGUI
-        .add(helper.light.position, 'z', -box.depth / 2 + 1.5, box.depth / 2 - 1.5, 0.01)
+        .add(helper.light.position, 'z', -box.depth / 2 + 1, box.depth / 2 - 1, 0.01)
         .name("Position Z")
         .listen()
         .onChange((_) => {
             helper.update();
             notifyParent();
         });
+
     lightGUI
-        .add(currentDirection, 'phi', -Math.PI, Math.PI, 0.01)
-        .name("Direction Phi")
+        .add(helper.light.target.position, 'x', -box.width / 2 + 1.5, box.width / 2 - 1.5, 0.01)
+        .name("Target X")
         .listen()
         .onChange((_) => {
-            const target = new THREE.Vector3(
-                Math.sin(currentDirection.theta) * Math.cos(currentDirection.phi),
-                Math.cos(currentDirection.theta),
-                Math.sin(currentDirection.theta) * Math.sin(currentDirection.phi)
-            );
-            helper.light.target.position.set(0, 0, 0);
-            helper.light.target.position.add(target);
-            helper.light.target.position.add(helper.light.position);
             helper.update();
             notifyParent();
         });
     lightGUI
-        .add(currentDirection, 'theta', 0, Math.PI, 0.01)
-        .name("Direction Theta")
+        .add(helper.light.target.position, 'y', -box.height / 2 + 1.5, box.height / 2 - 1.5, 0.01)
+        .name("Target Y")
         .listen()
         .onChange((_) => {
-            const target = new THREE.Vector3(
-                Math.sin(currentDirection.theta) * Math.cos(currentDirection.phi),
-                Math.cos(currentDirection.theta),
-                Math.sin(currentDirection.theta) * Math.sin(currentDirection.phi)
-            );
-            helper.light.target.position.set(0, 0, 0);
-            helper.light.target.position.add(target);
-            helper.light.target.position.add(helper.light.position);
+            helper.update();
+            notifyParent();
+        });
+    lightGUI
+        .add(helper.light.target.position, 'z', -box.depth / 2 + 1.5, box.depth / 2 - 1.5, 0.01)
+        .name("Target Z")
+        .listen()
+        .onChange((_) => {
             helper.update();
             notifyParent();
         });
@@ -673,19 +799,9 @@ function setupSpotLightGUI(lightGUI, helper, scene, initialState, box, notifyPar
         helper.light.color.set(initialState.color);
         helper.color = initialState.color;
         helper.light.intensity = initialState.intensity;
-        currentDirection.phi = initialState.dirPhi;
-        currentDirection.theta = initialState.dirTheta;
-        helper.light.position.set(0, 0, 0);
-        helper.light.position.add(initialState.position);
+        helper.light.position.copy(initialState.position);
         helper.light.position.add(box.position);
-        const target = new THREE.Vector3(
-            Math.sin(currentDirection.theta) * Math.cos(currentDirection.phi),
-            Math.cos(currentDirection.theta),
-            Math.sin(currentDirection.theta) * Math.sin(currentDirection.phi)
-        );
-        helper.light.target.position.set(0, 0, 0);
-        helper.light.target.position.add(target);
-        helper.light.target.position.add(helper.light.position);
+        helper.light.target.position.copy(initialState.target);
         helper.light.target.position.add(box.position);
         helper.light.angle = initialState.angle;
         helper.light.penumbra = initialState.penumbra;
@@ -849,7 +965,7 @@ function setupMaterialGUI(gui, cone, cylinder, sphere, textures, envMaps, notify
         displacementMap: null,
         displacementScale: 1,
         displacementBias: 0,
-        envMap: envMaps.sphere.InSitu,
+        envMap: null,
         envMapIntensity: 1,
         metalness: 0,
         metalnessMap: null,
@@ -1125,12 +1241,12 @@ function setupLambertGUI(gui, cone, commonProperties, properties, textures, envM
     const normalMapController = gui.add({ normal: 'None' }, 'normal', textureNames);
     normalMapController.name("Normal Map");
 
-    const normalScaleXController = gui.add(properties.normalScale, 'x', 0, 1, 0.01);
+    const normalScaleXController = gui.add(properties.normalScale, 'x', -1, 1, 0.01);
     normalScaleXController.name("Normal Scale X");
     normalScaleXController.onChange(onChange);
     normalScaleXController.disable(properties.normalMap == null);
 
-    const normalScaleYController = gui.add(properties.normalScale, 'y', 0, 1, 0.01);
+    const normalScaleYController = gui.add(properties.normalScale, 'y', -1, 1, 0.01);
     normalScaleYController.name("Normal Scale Y");
     normalScaleYController.onChange(onChange);
     normalScaleYController.disable(properties.normalMap == null);

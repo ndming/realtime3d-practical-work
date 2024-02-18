@@ -80,8 +80,7 @@ function main() {
         penumbra: 0.2,
         decay: 2,
         position: new THREE.Vector3(0, telelumenBoxHeight - 1, 0),
-        dirPhi: 0,
-        dirTheta: Math.PI
+        target: new THREE.Vector3(0, telelumenBoxHeight / 6, 0),
     };
     const hemisphereLightInitialState = {
         skyColor: 0xffffff,
@@ -173,7 +172,7 @@ function main() {
         gui, telelumen.cone, telelumen.cylinder, telelumen.sphere, textures, {
             cone: { None: null, SoccerField: soccerFieldMap, InSitu: coneRenderTarget.texture },
             cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
-            sphere: { None: null, InSitu: sphereRenderTarget.texture },
+            sphere: { None: null, SoccerField: soccerFieldMap, InSitu: sphereRenderTarget.texture },
         }, onNotify);
     setupWallGUI(gui, telelumen, secondaryLights, onNotify);
 

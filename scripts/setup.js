@@ -498,7 +498,7 @@ function setupTexturedCube(scene, texture) {
     
     const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
     const leftMaterial = new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide });
-    const rightMaterial = new THREE.MeshNormalMaterial({ map: texture, side: THREE.DoubleSide });
+    const rightMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide });
 
     const texturedCube = new THREE.Mesh(geometry, material);
     const leftCube = new THREE.Mesh(geometry, leftMaterial);

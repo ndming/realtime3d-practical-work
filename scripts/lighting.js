@@ -59,7 +59,7 @@ function main() {
     };
     const directionalLightInitialState = {
         color: 0xffffff,
-        intensity: 40,
+        intensity: 10,
         position: new THREE.Vector3(0, telelumenBoxHeight - 1, 0),
         dirPhi: 0,
         dirTheta: -Math.PI / 2
@@ -72,8 +72,7 @@ function main() {
         penumbra: 0.2,
         decay: 2,
         position: new THREE.Vector3(0, telelumenBoxHeight - 1, 0),
-        dirPhi: 0,
-        dirTheta: Math.PI
+        target: new THREE.Vector3(0, telelumenBoxHeight / 6, 0),
     };
     const hemisphereLightInitialState = {
         skyColor: 0xffffff,
