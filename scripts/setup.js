@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { FlyControls } from 'three/addons/controls/FlyControls.js';
+import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
@@ -10,6 +12,8 @@ export {
     setupOrbitControls,
     setupCoordinateSystem,
     setupFlyControls,
+    setupBallControls,
+    setupFirstPersonControls,
     setupTexturedCube,
 };
 
@@ -28,6 +32,19 @@ function setupFlyControls(camera, domElement, onCameraUpdate = () => { }) {
     controls.rollSpeed = 0.1;
     controls.addEventListener('change', onCameraUpdate);
 
+    return controls;
+}
+
+function setupBallControls(camera, domElement, onCameraUpdate = () => { }) {
+    const controls = new TrackballControls(camera, domElement);
+    controls.addEventListener('change', onCameraUpdate);
+
+    return controls;
+}
+
+function setupFirstPersonControls(camera, domElement, onCameraUpdate = () => { }) {
+    const controls = new FirstPersonControls(camera, domElement);
+    controls.lookSpeed = 0.03;
     return controls;
 }
 
@@ -245,26 +262,6 @@ function setupPrimitives(scene, onResourceLoaded) {
     const polyhedron = new THREE.Mesh(new THREE.PolyhedronGeometry(verticesOfCube, indicesOfFaces, 0.5, 1), material);
     polyhedron.position.set(-5, 0.5, -3);
 
-    const loader = new FontLoader();
-    loader.load('/typefaces/JetBrains-Mono-SemiBold.json', (font) => {
-        const geometry = new TextGeometry("JS", {
-            font: font,
-            size: 3,
-            height: 0.2,
-            curveSegments: 12,
-            bevelEnabled: true,
-            bevelThickness: 0.15,
-            bevelSize: 0.3,
-            bevelSegments: 5,
-        });
-        const text = new THREE.Mesh(geometry, material);
-        text.scale.set(0.2, 0.2, 1);
-        text.position.set(2.5, 0, -3.25);
-        scene.add(text);
-
-        onResourceLoaded();
-    });
-
     const edges = new THREE.EdgesGeometry(icosahedron.geometry);
     const edge = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
         color: 0xb3b3ff
@@ -388,6 +385,55 @@ function setupPrimitives(scene, onResourceLoaded) {
     scene.add(parametricMesh);
     scene.add(polyhedron);
     scene.add(wireframe);
+
+    const meshes = [
+        {mesh: box, seed: Math.random() },
+        {mesh: buffer, seed: Math.random() },
+        {mesh: capsule, seed: Math.random() },
+        {mesh: circle, seed: Math.random() },
+        {mesh: cone, seed: Math.random() },
+        {mesh: cylinder, seed: Math.random() },
+        {mesh: dodecahedron, seed: Math.random() },
+        {mesh: edge, seed: Math.random()},
+        {mesh: extruder, seed: Math.random() },
+        {mesh: icosahedron, seed: Math.random() },
+        {mesh: lathe, seed: Math.random() },
+        {mesh: octahedron, seed: Math.random() },
+        {mesh: plane, seed: Math.random() },
+        {mesh: ring, seed: Math.random() },
+        {mesh: heart, seed: Math.random() },
+        {mesh: sphere, seed: Math.random() },
+        {mesh: tetrahedron, seed: Math.random() },
+        {mesh: torus, seed: Math.random() },
+        {mesh: torusKnot, seed: Math.random() },
+        {mesh: tube, seed: Math.random() },
+        {mesh: parametricMesh, seed: Math.random() },
+        {mesh: polyhedron, seed: Math.random() },
+        {mesh: wireframe, seed: Math.random() },
+    ];
+
+    const loader = new FontLoader();
+    loader.load('/typefaces/JetBrains-Mono-SemiBold.json', (font) => {
+        const geometry = new TextGeometry("JS", {
+            font: font,
+            size: 3,
+            height: 0.2,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 0.15,
+            bevelSize: 0.3,
+            bevelSegments: 5,
+        });
+        const text = new THREE.Mesh(geometry, material);
+        text.scale.set(0.2, 0.2, 1);
+        text.position.set(2.5, 0, -3.25);
+        scene.add(text);
+        meshes.push({ mesh: text, seed: Math.random() });
+
+        onResourceLoaded();
+    });
+
+    return meshes;
 }
 
 class SinCurve extends THREE.Curve {

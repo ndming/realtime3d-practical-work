@@ -15,36 +15,33 @@ function main() {
     const camera = createCamera();
     scene.add(camera);
 
-    // On-demand rendering
-    let renderRequested = false;
-
     // Orbit controls
-    const controls = setupOrbitControls(camera, renderer.domElement, requestRender);
+    const controls = setupOrbitControls(camera, renderer.domElement, () => {});
 
     // Register callbacks
     window.addEventListener('resize', onResize);
-    window.addEventListener('resize', requestRender);
     onResize();
 
     setupCoordinateSystem(scene);
-    setupPrimitives(scene, requestRender);
+    const meshes = setupPrimitives(scene, () => {});
 
     // Start the render loop
-    render();
+    let lastFrameTime = performance.now();
+    animate(lastFrameTime);
 
-    function render() {
-        renderRequested = false;
-        controls.update();
+    function animate(frameTimeMillis) {
+        const deltaTimeMillis = frameTimeMillis - lastFrameTime;
+        lastFrameTime = frameTimeMillis;
+
+        for (const obj of meshes) {
+            obj.mesh.rotateX(obj.seed / 50);
+            obj.mesh.rotateY(obj.seed / 50);
+            obj.mesh.position.y = Math.sin(frameTimeMillis / 1000 + obj.seed * 10);
+        }
+        controls.update(deltaTimeMillis / 1000);
 
         renderer.render(scene, camera);
-    }
-
-    function requestRender() {
-        if (!renderRequested) {
-            renderRequested = true;
-            // Use request animation frame to avoid deadlock
-            window.requestAnimationFrame(render);
-        }
+        window.requestAnimationFrame(animate);
     }
 
     function onResize() {

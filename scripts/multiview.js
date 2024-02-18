@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import { setupPrimitives, setupOrbitControls, setupCoordinateSystem, setupFlyControls } from './setup';
+import GUI from 'lil-gui';
+import { 
+    setupPrimitives, setupOrbitControls, setupCoordinateSystem, 
+    setupFlyControls, setupBallControls, setupFirstPersonControls
+} from './setup';
 
 main();
 
@@ -19,16 +23,26 @@ function main() {
     perspScene.add(perspCamera);
 
     // Orbit controls
-    const orthoControls = setupOrbitControls(orthoCamera, document.querySelector("#orthographic"), requestRender);
-    const perspControls = setupOrbitControls(perspCamera, document.querySelector("#perspective"), requestRender);
+    const orbitOrthoControls = setupOrbitControls(orthoCamera, document.querySelector("#orthographic"), requestRender);
+    const orbitPerspControls = setupOrbitControls(perspCamera, document.querySelector("#perspective"), requestRender);
+
+    const flyOrthoControls = setupFlyControls(orthoCamera, document.querySelector("#orthographic"), requestRender);
+    const flyPerspControls = setupFlyControls(perspCamera, document.querySelector("#perspective"), requestRender);
+
+    const ballOrthoControls = setupBallControls(orthoCamera, document.querySelector("#orthographic"), requestRender);
+    const ballPerspControls = setupBallControls(perspCamera, document.querySelector("#perspective"), requestRender);
+
+    const personOrthoControls = setupFirstPersonControls(orthoCamera, document.querySelector("#orthographic"), requestRender);
+    const personPerspControls = setupFirstPersonControls(perspCamera, document.querySelector("#perspective"), requestRender);
 
     const views = [
-        { scene: perspScene, camera: perspCamera, elem: document.querySelector("#perspective"), controls: perspControls },
-        { scene: orthoScene, camera: orthoCamera, elem: document.querySelector("#orthographic"), controls: orthoControls },
+        { scene: perspScene, camera: perspCamera, elem: document.querySelector("#perspective"), controls: orbitPerspControls },
+        { scene: orthoScene, camera: orthoCamera, elem: document.querySelector("#orthographic"), controls: orbitOrthoControls },
     ];
 
     // On-demand rendering
     let renderRequested = false;
+    let onDemandRendering = true;
 
     // Register callbacks
     window.addEventListener('resize', onResize);
@@ -41,6 +55,45 @@ function main() {
     setupPrimitives(orthoScene, requestRender);
     setupPrimitives(perspScene, requestRender);
 
+    // Controls
+    const gui = new GUI();
+    const perspectiveControls = {
+        Orbit: orbitPerspControls,
+        Fly: flyPerspControls,
+        Trackball: ballPerspControls,
+        FirstPerson: personPerspControls,
+    };
+    const orthographicControls = {
+        Orbit: orbitOrthoControls,
+        Fly: flyOrthoControls,
+        Trackball: ballOrthoControls,
+        FirstPerson: personOrthoControls,
+    }
+    gui.add(views[0], 'controls', perspectiveControls).name("Perspective Control").onChange((control) => {
+        if (control === personPerspControls) {
+            perspCamera.position.set(2, 2, 2);
+            onDemandRendering = false;
+        } else {
+            perspCamera.position.set(10, 10, 10);
+            if (views[1].controls !== personOrthoControls) {
+                onDemandRendering = true;
+            }
+        }
+        requestRender();
+    });
+    gui.add(views[1], 'controls', orthographicControls).name("Orthographic Control").onChange((control) => {
+        if (control === personOrthoControls) {
+            orthoCamera.position.set(2, 2, 2);
+            onDemandRendering = false;
+        } else {
+            orthoCamera.position.set(10, 10, 10);
+            if (views[0].controls !== personPerspControls) {
+                onDemandRendering = true;
+            }
+        }
+        requestRender();
+    });
+
     // Start the render loop
     let lastFrameTime = performance.now();
     render(lastFrameTime);
@@ -52,9 +105,13 @@ function main() {
         renderRequested = false;
 
         views.forEach((view) => {
-            view.controls.update(deltaTimeMillis/ 1000);
+            view.controls.update(deltaTimeMillis / 1000);
             renderView(view); 
         });
+
+        if (!onDemandRendering) {
+            requestRender();
+        }
     }
 
     function requestRender() {
@@ -77,6 +134,9 @@ function main() {
             view.camera.aspect = (rect.width * pixelRatio | 0) / (rect.height * pixelRatio | 0);
             view.camera.updateProjectionMatrix();
         });
+
+        personOrthoControls.handleResize();
+        personPerspControls.handleResize();
     }
 
     function createPerspectiveCamera() {
