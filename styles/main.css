@@ -1,6 +1,10 @@
 html, body {
-    overflow: hidden;
     height: 100%;
+    background-color: rgb(8, 13, 13);
+}
+
+a {
+    color: rgb(206, 250, 243);
 }
 
 @font-face {
@@ -13,8 +17,19 @@ html, body {
 }
 
 h1, h2, p {
-    color: rgb(2, 46, 53);
+    color: rgb(255, 255, 255);
     user-select: none;
     font-family: 'JetBrains Mono';
     align-self: flex-end;
+}
+
+.column {
+    float: left;
+    width: 30%;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
 }
