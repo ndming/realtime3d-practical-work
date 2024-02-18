@@ -1,6 +1,8 @@
 html, body {
     height: 100%;
     background-color: rgb(8, 13, 13);
+    padding-left: 0.2cm;
+    padding-top: 0.2cm;
 }
 
 a {
@@ -25,7 +27,8 @@ h1, h2, p {
 
 .column {
     float: left;
-    width: 30%;
+    padding-right: 3cm;
+    padding-bottom: 1cm;
 }
 
 .row:after {
