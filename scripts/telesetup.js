@@ -185,12 +185,16 @@ function setupTelelumenLights(scene, initialState, box) {
 }
 
 function setupTelelumenSecondaryLights(scene, initialState, box, wallLeft, wallRight) {
+    const lookPos = new THREE.Vector3();
+    lookPos.copy(box.position);
+    lookPos.y += box.height / 2;
+
     // Area light left
     const rectLeft = new THREE.RectAreaLight(initialState.rectLeft.color, initialState.rectLeft.intensity);
     rectLeft.width = box.depth;
     rectLeft.height = box.height;
     rectLeft.position.copy(wallLeft.position);
-    rectLeft.lookAt(0, 0, 0);
+    rectLeft.lookAt(lookPos);
     const rectLeftHelper = new RectAreaLightHelper(rectLeft);
 
     // Area light left
@@ -198,7 +202,7 @@ function setupTelelumenSecondaryLights(scene, initialState, box, wallLeft, wallR
     rectRight.width = box.depth;
     rectRight.height = box.height;
     rectRight.position.copy(wallRight.position);
-    rectRight.lookAt(0, 0, 0);
+    rectRight.lookAt(lookPos);
     const rectRightHelper = new RectAreaLightHelper(rectRight);
 
     if (initialState.rectLeft.enabled) {

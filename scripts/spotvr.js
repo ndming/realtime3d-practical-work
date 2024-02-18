@@ -4,11 +4,6 @@ import {
     makeThigh, makeLeg, makeTorso, makeForearm, makeArm, makeWrist, 
     makePalm, makeGrip, makeThighWalkCycle, makeLegWalkCycle, makeTorsoWalkCycle,
     makeThighJumpAction, makeLegJumpAction, makeTorsoJumpAction,
-    makeThighFrontDoggyAction, makeThighBackDoggyAction, makeTorsoDoggyAction,
-    makeLegFrontDoggyAction, makeLegBackDoggyAction,
-    makeThighFrontDonkeyAction, makeThighBackDonkeyAction, makeTorsoDonkeyAction,
-    makeLegFrontDonkeyAction, makeLegBackDonkeyAction,
-    makeGripAAction, makeGripBAction
 } from './spotmake';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
