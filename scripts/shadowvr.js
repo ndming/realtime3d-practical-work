@@ -14,6 +14,8 @@ import {
 } from './telesetup';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
+import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
+import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
 
 main();
 
@@ -180,6 +182,23 @@ function main() {
     }, onNotify);
     setupWallGUI(gui, telelumen, secondaryLights, onNotify);
     setupShadowGUI(lightGUI, telelumenLights, onNotify);
+
+    const folders = gui.foldersRecursive();
+    for (const folder of folders) {
+        folder.open();
+    }
+    gui.domElement.style.visibility = 'hidden';
+
+    const group = new InteractiveGroup(renderer, camera);
+    scene.add(group);
+
+    const mesh = new HTMLMesh(gui.domElement);
+    mesh.position.x = 4;
+    mesh.position.y = 2;
+    mesh.position.z = -0.5;
+    mesh.rotation.y = -Math.PI / 2;
+    mesh.scale.setScalar(8);
+    group.add(mesh);
 
     // Start the render loop
     renderer.setAnimationLoop(render);
