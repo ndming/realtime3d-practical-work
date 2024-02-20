@@ -257,10 +257,6 @@ function setupWallGUI(gui, telelumen, secondaryLights, notifyParent) {
             }
             notifyParent();
         });
-
-    wallGUI.close();
-    wallLeftGUI.close();
-    wallRightGUI.close();
 }
 
 function setupSecondaryLightGUI(gui, secondaryLights, scene, initialState, notifyParent) {

@@ -172,32 +172,19 @@ function main() {
         requestRender();
     }
 
-    const lightGUI = setupLightGUI(gui, telelumenLights, scene, initialState, telelumenBox, onNotify);
-    setupSecondaryLightGUI(lightGUI, secondaryLights, scene, initialState, onNotify);
-    setupMaterialGUI(
-        gui, telelumen.cone, telelumen.cylinder, telelumen.sphere, textures, {
-        cone: { None: null, SoccerField: soccerFieldMap, InSitu: coneRenderTarget.texture },
-        cylinder: { None: null, SoccerField: soccerFieldMap, InSitu: cylinderRenderTarget.texture },
-        sphere: { None: null, SoccerField: soccerFieldMap, InSitu: sphereRenderTarget.texture },
-    }, onNotify);
+    setupSecondaryLightGUI(gui, secondaryLights, scene, initialState, onNotify);
     setupWallGUI(gui, telelumen, secondaryLights, onNotify);
-    setupShadowGUI(lightGUI, telelumenLights, onNotify);
-
-    const folders = gui.foldersRecursive();
-    for (const folder of folders) {
-        folder.open();
-    }
     gui.domElement.style.visibility = 'hidden';
 
     const group = new InteractiveGroup(renderer, camera);
     scene.add(group);
 
     const mesh = new HTMLMesh(gui.domElement);
-    mesh.position.x = 4;
-    mesh.position.y = 2;
-    mesh.position.z = -0.5;
+    mesh.position.x = 1;
+    mesh.position.y = 1.5;
+    mesh.position.z = 0;
     mesh.rotation.y = -Math.PI / 2;
-    mesh.scale.setScalar(8);
+    mesh.scale.setScalar(4);
     group.add(mesh);
 
     // Start the render loop

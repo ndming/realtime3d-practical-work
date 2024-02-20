@@ -1,9 +1,14 @@
 import * as THREE from 'three';
 import { setupOrbitControls, setupCoordinateSystem } from './setup';
-import { 
-    makeThigh, makeLeg, makeTorso, makeForearm, makeArm, makeWrist, 
+import {
+    makeThigh, makeLeg, makeTorso, makeForearm, makeArm, makeWrist,
     makePalm, makeGrip, makeThighWalkCycle, makeLegWalkCycle, makeTorsoWalkCycle,
     makeThighJumpAction, makeLegJumpAction, makeTorsoJumpAction,
+    makeThighFrontDoggyAction, makeThighBackDoggyAction, makeTorsoDoggyAction,
+    makeLegFrontDoggyAction, makeLegBackDoggyAction,
+    makeThighFrontDonkeyAction, makeThighBackDonkeyAction, makeTorsoDonkeyAction,
+    makeLegFrontDonkeyAction, makeLegBackDonkeyAction,
+    makeGripAAction, makeGripBAction
 } from './spotmake';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
@@ -32,7 +37,7 @@ function main() {
     onResize();
 
     // Set up a basic scene
-    const world = setupCoordinateSystem(scene);
+    setupCoordinateSystem(scene);
     const lightA = new THREE.PointLight(0xffffff, 50, 20);
     const lightB = new THREE.PointLight(0xffffff, 50, 20);
     lightA.position.set(4, 4, 4);
@@ -108,7 +113,7 @@ function main() {
     palm.add(gripB);
 
     // Torso
-    const spotGlobalPosition = new THREE.Vector3(1.5, 2, -6);
+    const spotGlobalPosition = new THREE.Vector3(0, 2, -4);
     const torso = makeTorso();
     torso.position.set(spotGlobalPosition);
     torso.add(thighA1);
@@ -118,16 +123,39 @@ function main() {
     torso.add(forearm);
     scene.add(torso);
 
+    // Walk cycles
+    const thighBWalkCycle = makeThighWalkCycle([thighB1, thighB2]);
+    thighBWalkCycle.action.play();
+    thighBWalkCycle.mixer.update(0.75);
+    thighBWalkCycle.action.paused = true;
+
+    const legBWalkCycle = makeLegWalkCycle([legB1, legB2]);
+    legBWalkCycle.action.play();
+    legBWalkCycle.mixer.update(0.75);
+    legBWalkCycle.action.paused = true;
+
+    const torsoWalkCycle = makeTorsoWalkCycle([torso], spotGlobalPosition);
+    torsoWalkCycle.action.play();
+    torsoWalkCycle.mixer.update(0.25);
+    torsoWalkCycle.action.paused = true;
+
     // Jump actions
+    let jumpped = false;
     const thighJumpAction = makeThighJumpAction([thighA1, thighA2, thighB1, thighB2]);
     const legJumpAction = makeLegJumpAction([legA1, legA2, legB1, legB2]);
     const torsoJumpAction = makeTorsoJumpAction([torso], spotGlobalPosition);
+    torsoJumpAction.mixer.addEventListener('finished', (e) => { jumpped = false });
     const jumpActions = [torsoJumpAction, thighJumpAction, legJumpAction];
 
-    jumpActions.forEach((anim) => {
-        anim.action.setLoop(THREE.LoopRepeat);
-        anim.action.play(); 
-    });
+    onclick = (event) => {
+        if (jumpped)
+            return;
+        jumpped = true;
+        jumpActions.forEach((anim) => {
+            anim.action.reset();
+            anim.action.play();
+        });
+    }
 
     // Start the render loop
     let lastFrameTime = performance.now();
@@ -141,7 +169,6 @@ function main() {
         jumpActions.forEach((anim) => { anim.mixer.update(deltaTimeMillis / 1000); });
 
         controls.update(deltaTimeMillis / 1000);
-
         renderer.render(scene, camera);
     }
 
@@ -163,7 +190,8 @@ function main() {
         const near = 0.1;
         const far = 200;
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.set(8, 8, 8);
+        camera.position.set(10, 10, 10);
+        camera.lookAt(0, 0, 0);
 
         return camera;
     }
